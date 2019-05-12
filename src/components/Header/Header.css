@@ -1,0 +1,22 @@
+.Header {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+.Header > ul {
+  display: flex;
+  padding: 0px;
+  margin: 0px;
+  position: absolute;
+  top: 0px;
+  height: 40px;
+  width: 100%;
+}
+
+.Header > ul > li {
+  flex: 1 1 0%;
+  text-align: center;
+  list-style-type: none;
+  padding: 10px;
+}
