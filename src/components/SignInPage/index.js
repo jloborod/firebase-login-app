@@ -1,25 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import EmailForm from '../EmailForm';
+import Error from '../Error';
 
-const SignInPage = ({ match, signIn }) => {
+const SignInPage = ({
+  match,
+  location,
+  signIn,
+  setUser,
+}) => {
   const [error, setError] = useState(null);
+  const email = match.params.email;
+  const link = `${email}${location.search}`;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const email = e.target.value;
-    const link = match.link;
+  useEffect(() => {
+    const confirmSignIn = () => {
+      signIn(email, link)
+        .then(resp => {
+          setUser(resp.user);
+        })
+        .catch(err => {
+          setError(err);
+        });
+    }
+    confirmSignIn();
+  }, [email, link]);
 
-    console.log(email, link);
-  }
-
-  return (
-    <div className='SignInPage'>
-      <EmailForm
-        submitLabel='Confirm email'
-        onSubmit={handleSubmit}
-      />
-    </div>
+  return error && (
+    <Error />
   );
 };
 

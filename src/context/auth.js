@@ -14,8 +14,8 @@ const firebaseConfig = {
 initializeApp(firebaseConfig);
 
 export const initialProps = {
-  isSignedIn: () => auth().isSignInWithEmailLink(window.location.href),
-  sendEmail: email =>
+  isSignInWithEmailLink: () => auth().isSignInWithEmailLink(window.location.href),
+  sendEmailLink: email =>
     auth().sendSignInLinkToEmail(email, {
       url: `https://localhost:3000/signin/${email}`,
       handleCodeInApp: true,
