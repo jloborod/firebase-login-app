@@ -2,17 +2,17 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { authInit } from '../../store/actions/auth';
+import { init } from '../../store/actions/auth';
 
 const Something = ({ onClick }) =>
   <button
     onClick={onClick}
   >
-    Click me and I will say Hello!
+    Init
   </button>;
 
 const mapDispatchToProps = dispatch => ({
-  onClick: bindActionCreators(authInit, dispatch),
+  onClick: bindActionCreators(init, dispatch),
 })
 
 export default connect(

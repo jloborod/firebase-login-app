@@ -1,6 +1,6 @@
-import { all, fork, spawn, call, takeEvery, delay, takeLatest } from 'redux-saga/effects';
+import { all, fork, takeLatest } from 'redux-saga/effects';
 
-import { initAuth } from './auth';
+import { initAuth, authStateWatch } from './auth';
 import { AUTH_INIT } from '../actions/auth';
 import hello from './hello';
 
@@ -10,6 +10,7 @@ function* init() {
 
 function* watchers() {
   yield takeLatest(AUTH_INIT, hello);
+  yield authStateWatch();
 }
 
 export default function* rootSaga() {
