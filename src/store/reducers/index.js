@@ -1,20 +1,9 @@
-import {
-  SAY_HELLO,
-} from '../actions';
+import { combineReducers } from 'redux';
 
-const initialState = {
-  init: false,
-};
+import auth from './auth';
+import hello from './hello';
 
-const reducer = (state = initialState, action) => {
-  switch (action.type) {
-    case SAY_HELLO:
-      return {
-        init: true,
-      };
-    default:
-      return state;
-  }
-};
-
-export default reducer;
+export default combineReducers({
+  auth,
+  hello,
+});
