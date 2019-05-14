@@ -1,58 +1,53 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
-
-import AuthContext from '../../context/auth';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
 const AuthRoute = ({ component: Component, ...rest }) => {
-  const {
-    user,
-    setUser,
-    sendEmailLink,
-    signIn,
-    signOut
-  } = useContext(AuthContext);
-  console.log(user, rest.path.includes('signin'));
+  // console.log(user, rest.path.includes('signin'));
 
-  return (
-    <Route
-      {...rest}
-      render={props => {
-        if (
-          (user && !rest.path.includes('signin')) ||
-          (!user && rest.path.includes('signin'))
-        ) {
-          return (
-            <Component
-              {...props}
-              user={user}
-              setUser={setUser}
-              sendEmailLink={sendEmailLink}
-              signIn={signIn}
-              signOut={signOut}
-            />
-          );
-        } else if (user && rest.path.includes('signin')) {
-          return (
-            <Redirect
-              to={{
-                pathname: '/',
-                state: { from: props.location },
-              }}
-            />
-          )
-        } else if (!user && !rest.path.includes('signin')) {
-          return (
-            <Redirect
-              to={{
-                pathname: '/signin',
-                state: { from: props.location },
-              }}
-            />
-          );
-        }
-      }}
-    />
-  );
+  return <Route {...rest} render={props => <Component {...props} />} />;
+
+  // return (
+  //   <Route
+  //     {...rest}
+  //     render={props => {
+  //       if (
+  //         (user && !rest.path.includes('signin')) ||
+  //         (!user && rest.path.includes('signin'))
+  //       ) {
+  //         return (
+  //           <Component
+  //             {...props}
+  //             user={user}
+  //             setUser={setUser}
+  //             sendEmailLink={sendEmailLink}
+  //             signIn={signIn}
+  //             signOut={signOut}
+  //           />
+  //         );
+  //       } else if (user && rest.path.includes('signin')) {
+  //         return (
+  //           <Redirect
+  //             to={{
+  //               pathname: '/',
+  //               state: { from: props.location },
+  //             }}
+  //           />
+  //         )
+  //       } else if (!user && !rest.path.includes('signin')) {
+  //         return (
+  //           <Redirect
+  //             to={{
+  //               pathname: '/signin',
+  //               state: { from: props.location },
+  //             }}
+  //           />
+  //         );
+  //       }
+  //     }}
+  //   />
+  // );
 };
 
 // const AuthRoute = ({ component: Component, ...rest }) => {

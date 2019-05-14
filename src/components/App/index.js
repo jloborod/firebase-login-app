@@ -10,6 +10,7 @@ import Something from '../Something';
 const App = () => (
   <Router>
     <Switch>
+      <Route path="*/:email" component={Something} />
       <Route path="*" component={Something} />
     </Switch>
   </Router>
