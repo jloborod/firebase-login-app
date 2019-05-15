@@ -1,114 +1,164 @@
-import { eventChannel, END } from 'redux-saga';
-import { call, put, take, takeEvery, takeLatest } from 'redux-saga/effects';
-import { initializeApp, auth } from 'firebase';
+import { eventChannel } from 'redux-saga';
+import { call, put, take, takeLatest, race } from 'redux-saga/effects';
 
-import {
+import actions from '../actions/auth';
+import history from '../../utils/history';
+import authService from '../../services/auth';
+
+const {
   init,
-  AUTH_INIT,
   setUser,
+  noUserFound,
+  getUser,
+  getUserSuccess,
+  getUserError,
   sendEmailLinkSuccess,
   sendEmailLinkError,
-  AUTH_SEND_EMAIL_LINK,
-  confirmEmail,
+  checkEmailLink,
+  checkEmailLinkSuccess,
+  checkEmailLinkError,
+  signIn,
   signInSuccess,
   signInError,
-  AUTH_SIGN_IN,
-} from '../actions/auth';
+  signOutSuccess,
+  signOutError,
+} = actions;
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyBxIh7vOW5sZHBgaLGtOz28cxnAb8w-JvY',
-  authDomain: 'react-firebase-login-app.firebaseapp.com',
-  databaseURL: 'https://react-firebase-login-app.firebaseio.com',
-  projectId: 'react-firebase-login-app',
-  storageBucket: 'react-firebase-login-app.appspot.com',
-  messagingSenderId: '650823228356',
-  appId: '1:650823228356:web:774805f883bf29ef',
-};
-
-export function* initAuth() {
-  yield call(initializeApp, firebaseConfig);
-  yield put(init());
-}
-
-export function* confirmCheck() {
+export function* emailLinkCheckSaga() {
   try {
-    const isConfirmEmail = yield call(
-      auth().isSignInWithEmailLink,
+    // yield put(checkEmailLink());
+    const isEmailLink = yield call(
+      authService.isSignInWithEmailLink,
       window.location.href,
     );
-    if (isConfirmEmail) {
-      yield put(confirmEmail()); // Maybe another action
+    if (isEmailLink) {
+      const email = localStorage.getItem('email');
+      const link = history.location.search;
+
+      if (email && link) {
+        yield put(checkEmailLinkSuccess());
+        yield put(signIn(email, link));
+      } else {
+        // We have to go to another view
+        // to confirm user email for
+        // security reasons
+        yield call(history, '/confirm');
+      }
+    } else {
+      yield put(checkEmailLinkError());
+      yield call(history.push, '/signin');
     }
   } catch(e) {
     console.log(e);
+    // Handle this generic error
+    // Perhaps it should re-try
+    // TODO
   }
-
 }
 
-export function* initAuthWatch() {
-  yield takeLatest(AUTH_INIT, confirmCheck);
-}
-
-export function* sendEmailLink(action) {
+export function* sendEmailLinkSaga(action) {
   const { email } = action;
-  const options = {
-    url: `https://localhost:3000/signin/${email}`,
-    handleCodeInApp: true,
-  };
-  // Workaround not to pass multiple params to call
-  const sendLink = (em) => auth().sendSignInLinkToEmail(em, options);
+
   try {
-    yield call(sendLink, email);
+    yield call(authService.sendSignInLinkToEmail, email);
     yield put(sendEmailLinkSuccess());
+    yield localStorage.setItem('email', email);
   } catch (e) {
     console.log(e);
-    yield put(sendEmailLinkError());
+    yield put(sendEmailLinkError(e));
   }
 }
 
-export function* sendEmailLinkWatch() {
-  yield takeLatest(AUTH_SEND_EMAIL_LINK, sendEmailLink);
-}
-
-export function* signIn(action) {
+export function* signInSaga(action) {
   const { email, link } = action;
-  console.log(link);
+  console.log(email, link);
 
   try {
-    // Another workarour to pass single param each time
-    const signInWithEmail = em => {
-      return auth().signInWithEmailLink(em, link);
-    }
-    const resp = yield call(signInWithEmail, email);
-    console.log(resp);
+    yield call(authService.signInWithEmailLink, email);
     yield put(signInSuccess());
+    yield localStorage.removeItem('email');
+    yield call(history.push, '/');
   } catch (e) {
     console.log(e);
-    yield put(signInError());
+    yield put(signInError(e));
+    yield call(history.push, '/signin');
   }
 
 }
 
-export function* signInWatch() {
-  yield takeLatest(AUTH_SIGN_IN, signIn);
+export function* signOutSaga() {
+  console.log('signing out');
+  try {
+    yield call(authService.signOut());
+    yield put(signOutSuccess());
+    yield call(history.push, '/signin');
+  } catch (e) {
+    console.log(e);
+    yield put(signOutError(e));
+  }
 }
 
-function authStateChannel() {
-  return eventChannel(emitter => {
-    const unsubscribe = auth().onAuthStateChanged(user => {
-      if (user && user.email) {
-        emitter({ user: user.email });
-      }
-    });
+export function* checkUserSaga() {
+  yield put(getUser());
+  const user = yield call(authService.getAuthUser);
+  if (user) {
+    yield put(getUserSuccess(user));
+  } else {
+    yield put(getUserError());
+  }
+}
 
-    return () => unsubscribe();
+/******************************************************************************/
+/******************************* WATCHERS *************************************/
+/******************************************************************************/
+export function* initAuthSagaWatch() {
+  const { user, noUser } = yield race({
+    user: take(actions.AUTH_SET_USER),
+    noUser: take(actions.AUTH_NO_USER_FOUND),
   });
+  if (noUser) {
+    yield put(checkEmailLink());
+  }
+  if (user) {
+    // If there is an user, any url is allowed
+    // We might to redirect somewhere on refresh
+  }
+  yield put(init());
 }
 
 export function* userStateWatch() {
+  function authStateChannel() {
+    return eventChannel(emitter => {
+      const unsubscribe = authService.onAuthStateChanged(user => {
+        if (user) {
+          emitter(setUser(user));
+        } else {
+          emitter(noUserFound());
+        }
+      });
+
+      return () => unsubscribe();
+    });
+  }
   const channel = yield call(authStateChannel);
   while (true) {
-    const user = yield take(channel);
-    yield put(setUser(user));
+    const action = yield take(channel);
+    yield put(action);
   }
+}
+
+export function* emailLinkCheckWatch() {
+  yield takeLatest(actions.AUTH_CHECK_EMAIL_LINK, emailLinkCheckSaga);
+}
+
+export function* sendEmailLinkWatch() {
+  yield takeLatest(actions.AUTH_SEND_EMAIL_LINK, sendEmailLinkSaga);
+}
+
+export function* signInWatch() {
+  yield takeLatest(actions.AUTH_SIGN_IN, signInSaga);
+}
+
+export function* signOutWatch() {
+  yield takeLatest(actions.AUTH_SIGN_OUT, signOutSaga);
 }
