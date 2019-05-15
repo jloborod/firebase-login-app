@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import Error from '../Error';
 
@@ -8,26 +8,12 @@ const SignInPage = ({
   signIn,
   setUser,
 }) => {
-  const [error, setError] = useState(null);
   const email = match.params.email;
   const link = `${email}${location.search}`;
+  // console.log(email, link);
 
-  useEffect(() => {
-    const confirmSignIn = () => {
-      signIn(email, link)
-        .then(resp => {
-          setUser(resp.user);
-        })
-        .catch(err => {
-          setError(err);
-        });
-    }
-    confirmSignIn();
-  }, [email, link]);
 
-  return error && (
-    <Error />
-  );
+  return <span>Sign in page</span>
 };
 
 export default SignInPage;

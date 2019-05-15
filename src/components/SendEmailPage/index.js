@@ -1,21 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
+import { sendEmailLink } from '../../store/actions/auth';
 import EmailForm from '../EmailForm';
-import Error from '../Error';
 
-const SendEmailPage = ({ sendEmailLink }) => {
-  const [emailSent, setEmailSent] = useState(false);
-  const [error, setError] = useState(false);
-
+const SendEmailPage = ({ emailSent, sendEmailLink }) => {
   const handleSendEmailLink = (email) => {
-    sendEmailLink(email)
-      .then(() => {
-        setEmailSent(true);
-        setError(false)
-      })
-      .catch(err => {
-        setError(true);
-      });
+    sendEmailLink(email);
   }
 
   return (
@@ -25,9 +17,19 @@ const SendEmailPage = ({ sendEmailLink }) => {
         onSubmit={handleSendEmailLink}
       />
       { emailSent && <span>An email link has been sent to your email account :)</span>}
-      { error && <Error error='The provided email is not valid...' /> }
     </div>
   )
 };
 
-export default SendEmailPage;
+const mapStateToProps = state => ({
+  emailSent: state.auth.emailSent,
+});
+
+const mapDispatchToProps = dispatch => ({
+  sendEmailLink: bindActionCreators(sendEmailLink, dispatch),
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(SendEmailPage);

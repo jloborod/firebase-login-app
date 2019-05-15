@@ -1,19 +1,27 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
-const HomePage = ({ user, setUser, signOut }) => {
+import { signOut } from '../../store/actions/auth';
+
+const HomePage = ({ signOut }) => {
   const handleClick = () => {
-    signOut()
-      .then(resp => console.log('ehhmm', resp))
-      .catch(err => console.log(err));
-    setUser(null);
+    signOut();
   };
 
   return (
     <div className='HomePage'>
-      <span>You are logged in as {user.email}</span>
+      <span>You are logged in!</span>
       <button onClick={handleClick}>Logout</button>
     </div>
   );
 };
 
-export default HomePage;
+const mapDispatchToProps = dispatch => ({
+  signOut: bindActionCreators(signOut, dispatch),
+});
+
+export default connect(
+  null,
+  mapDispatchToProps,
+)(HomePage);
