@@ -89,7 +89,7 @@ export function* signInSaga(action) {
 export function* signOutSaga() {
   console.log('signing out');
   try {
-    yield call(authService.signOut());
+    yield call(authService.signOut);
     yield put(signOutSuccess());
     yield call(history.push, '/signin');
   } catch (e) {
@@ -123,7 +123,15 @@ export function* initAuthSagaWatch() {
     // If there is an user, any url is allowed
     // We might to redirect somewhere on refresh
   }
-  yield put(init());
+  const isReadyToInit = yield race({
+    1: take(actions.AUTH_SET_USER),
+    2: take(actions.AUTH_SIGN_IN_SUCCESS),
+    3: take(actions.AUTH_SIGN_IN_ERROR),
+    4: take(actions.AUTH_CHECK_EMAIL_LINK_ERROR),
+  });
+  if (isReadyToInit) {
+    yield put(init());
+  }
 }
 
 export function* userStateWatch() {

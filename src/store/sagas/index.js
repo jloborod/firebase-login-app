@@ -5,17 +5,19 @@ import {
   sendEmailLinkWatch,
   emailLinkCheckWatch,
   signInWatch,
+  signOutWatch,
   userStateWatch,
 } from './auth';
 
 
 function* watchers() {
   yield all([
-    spawn(initAuthSagaWatch),
     spawn(userStateWatch),
+    spawn(initAuthSagaWatch),
     spawn(sendEmailLinkWatch),
-    spawn(signInWatch),
     spawn(emailLinkCheckWatch),
+    spawn(signInWatch),
+    spawn(signOutWatch),
   ]);
 }
 
