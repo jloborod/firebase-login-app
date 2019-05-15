@@ -1,29 +1,26 @@
 import React from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { Router, Switch, Route } from 'react-router-dom';
+import { connect } from 'react-redux';
 
-import AuthRoute from '../AuthRoute';
+import history from '../../utils/history';
 import HomePage from '../HomePage';
 import SendEmailPage from '../SendEmailPage';
 import SignInPage from '../SignInPage';
-import Something from '../Something';
+import SplashScreen from '../SplashScreen';
 
-const App = () => (
-  <Router>
+const App = ({ isInitialised }) => isInitialised ?
+  <Router history={history}>
     <Switch>
-      <Route path="*/:email" component={Something} />
-      <Route path="*" component={Something} />
+      <Route path="/" exact component={HomePage} />
+      <Route path="/signin/" exact component={SendEmailPage} />
+      <Route path="/signin/:email" component={SignInPage} />
+      <Route path="*" component={HomePage} />
     </Switch>
-  </Router>
-);
-// const App = () => (
-//   <Router>
-//     <Switch>
-//       <AuthRoute path="/" exact component={HomePage} />
-//       <AuthRoute path="/signin/" exact component={SendEmailPage} />
-//       <AuthRoute path="/signin/:email" component={SignInPage} />
-//       <AuthRoute path="*" component={HomePage} />
-//     </Switch>
-//   </Router>
-// );
+  </Router> :
+  <SplashScreen />;
 
-export default App;
+const mapStateToProps = state => ({
+  isInitialised: state.auth.isInitialised,
+});
+
+export default connect(mapStateToProps)(App);

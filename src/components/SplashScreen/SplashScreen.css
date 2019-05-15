@@ -1,0 +1,10 @@
+.SplashScreen {
+  display: flex;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(20deg, #0E0E52, #192BC2);
+  transition: all 1s;
+}
